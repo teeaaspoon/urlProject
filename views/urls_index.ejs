@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>TinyApp</title>
+</head>
+
+<body>
+    <header>
+        <% include partials/_header.ejs %>
+    </header>
+    <main>
+        <table>
+            <tr>
+                <th>Short Link</th>
+                <th>Long Link</th>
+            </tr>
+            <% for(const key in urls){ %>
+                <tr>
+                    <td>
+                        <%= key %>
+                    </td>
+                    <td>
+                        <%= urls[key]%>
+                    </td>
+                    <td>
+                        <form method="POST" action="/urls/<%= key %>/delete">
+                            <input type="submit" value="delete">
+                        </form>
+                    </td>
+                </tr>
+                <% } %>
+
+
+
+        </table>
+    </main>
+
+</body>
+
+</html>
