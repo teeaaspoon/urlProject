@@ -11,7 +11,13 @@
         <% include partials/_header.ejs %>
     </header>
     <main>
-        Your Long URL is:
+        <h2>Short URL:
+            <%= shortURL %>
+        </h2>
+        <form action="/urls/<%= shortURL %>" method="post">
+            <input id="editLongURL" type="text" name="editLongURL" value="<%= urls[shortURL] %>">
+            <input type="submit" value="Update">
+        </form>
     </main>
 
 </body>

@@ -29,12 +29,16 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
 });
 
+// renders page for new url to shorten
 app.get("/urls/new", (req, res) => {
     res.render("urls_new");
 });
 
 app.get("/urls/:id", (req, res) => {
-    let templateVars = { shortURL: req.params.id };
+    let templateVars = {
+        shortURL: req.params.id,
+        urls: urlDatabase
+    };
     res.render("urls_show", templateVars);
 });
 
@@ -54,6 +58,14 @@ app.post("/urls/:id/delete", (req, res) => {
 
     delete urlDatabase[shortURL];
     res.redirect(`/urls`);
+});
+
+// waits for a post to /urls/:id then updates the link inside
+app.post("/urls/:id", (req, res) => {
+    let shortURL = req.params["id"];
+    let updatedLongURL = req.body["editLongURL"];
+    urlDatabase[shortURL] = updatedLongURL;
+    res.redirect("/urls");
 });
 
 // redirects the user to whatever the shortURL is in the database

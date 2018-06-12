@@ -9,6 +9,7 @@
 <body>
     <header>
         <% include partials/_header.ejs %>
+            <h2>Your Links</h2>
     </header>
     <main>
         <table>
@@ -25,15 +26,17 @@
                         <%= urls[key]%>
                     </td>
                     <td>
+                        <a href="/urls/<%=key%>">
+                            <p>Edit</p>
+                        </a>
+                    </td>
+                    <td>
                         <form method="POST" action="/urls/<%= key %>/delete">
                             <input type="submit" value="delete">
                         </form>
                     </td>
                 </tr>
                 <% } %>
-
-
-
         </table>
     </main>
 
