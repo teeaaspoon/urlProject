@@ -10,7 +10,14 @@
         <input type="text" placeholder="username" name="username">
         <input type="submit" value="submit">
     </form>
-    <% } %>
-        <span>
-            <%= username %>
-        </span>
+    <% } else {%>
+        <div>
+
+            <form action="/logout" method="post">
+                <label for="username">
+                    <%= username %>
+                </label>
+                <input type="submit" value="Logout">
+            </form>
+        </div>
+        <% } %>
