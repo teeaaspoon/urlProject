@@ -144,7 +144,17 @@ app.post("/logout", (req, res) => {
 
 // route to register
 app.get("/register", (req, res) => {
-    res.render("urls_register");
+    const templateVars = {
+        shortURL: req.params.id,
+        urls: urlDatabase,
+        username: req.cookies["username"],
+        errors: []
+    };
+    res.render("urls_register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+    console.log(req.body);
 });
 
 app.listen(PORT, function() {
