@@ -1,8 +1,10 @@
 const express = require("express");
-const app = express();
-const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+
+const app = express();
+const PORT = 8080;
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -27,7 +29,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-    let templateVars = {
+    const templateVars = {
         urls: urlDatabase,
         username: req.cookies["username"],
         errors: []
@@ -37,7 +39,7 @@ app.get("/urls", (req, res) => {
 
 // renders page for new url to shorten
 app.get("/urls/new", (req, res) => {
-    let templateVars = {
+    const templateVars = {
         urls: urlDatabase,
         username: req.cookies["username"],
         errors: []
@@ -46,7 +48,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-    let templateVars = {
+    const templateVars = {
         shortURL: req.params.id,
         urls: urlDatabase,
         username: req.cookies["username"],
@@ -55,15 +57,16 @@ app.get("/urls/:id", (req, res) => {
     res.render("urls_show", templateVars);
 });
 
-// waits for a post to /urls and redirects them to the page where they can look at the short and long url
+// waits for a post to /urls and redirects them to the
+// page where they can look at the short and long url
 app.post("/urls", (req, res) => {
-    //CHECK IF REQ.BODY IS EMPTY STRING IF IT IS ADD ERROR
+    // Checks if an empty string was entered
     var errors = [];
-    if (req.body["longURL"] == "") {
+    if (req.body["longURL"] === "") {
         errors.push("INVALID URL");
     }
     if (errors.length > 0) {
-        let templateVars = {
+        const templateVars = {
             shortURL: req.params.id,
             urls: urlDatabase,
             username: req.cookies["username"],
@@ -81,7 +84,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-    let shortURL = req.params["id"];
+    const shortURL = req.params["id"];
     console.log(shortURL);
 
     delete urlDatabase[shortURL];
@@ -90,8 +93,8 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // waits for a post to /urls/:id then updates the link inside
 app.post("/urls/:id", (req, res) => {
-    let shortURL = req.params["id"];
-    let updatedLongURL = req.body["editLongURL"];
+    const shortURL = req.params["id"];
+    const updatedLongURL = req.body["editLongURL"];
     urlDatabase[shortURL] = updatedLongURL;
     res.redirect("/urls");
 });
@@ -99,13 +102,13 @@ app.post("/urls/:id", (req, res) => {
 // redirects the user to whatever the shortURL is in the database
 app.get("/u/:shortURL", (req, res) => {
     // got the short url from the id
-    let shortURL = req.params["shortURL"];
+    const shortURL = req.params["shortURL"];
     if (!(shortURL in urlDatabase)) {
         console.log("shortURL doesn't exist. Redirecting to homepage");
         res.redirect("/");
     } else {
         // find the long URL in the database
-        let longURL = urlDatabase[shortURL];
+        const longURL = urlDatabase[shortURL];
         // response redirect to the long url
         res.redirect(longURL);
     }
@@ -113,14 +116,14 @@ app.get("/u/:shortURL", (req, res) => {
 
 // route to login
 app.post("/login", (req, res) => {
-    //check if blank username
+    // check if blank username
     var errors = [];
 
-    if (req.body["username"] == "") {
+    if (req.body["username"] === "") {
         errors.push("invalid username");
     }
     if (errors.length > 0) {
-        let templateVars = {
+        const templateVars = {
             shortURL: req.params.id,
             urls: urlDatabase,
             username: req.cookies["username"],
