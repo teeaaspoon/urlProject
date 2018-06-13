@@ -1,17 +1,9 @@
-<!DOCTYPE html>
-<html>
+<% include partials/_header.ejs %>
 
-<head>
-    <meta charset="utf-8" />
-    <title>TinyApp</title>
-</head>
 
-<body>
-    <header>
-        <% include partials/_header.ejs %>
-            <h2>Your Links</h2>
-    </header>
+
     <main>
+        <h2>Your Links</h2>
         <table>
             <tr>
                 <th>Short Link</th>
@@ -39,7 +31,4 @@
                 <% } %>
         </table>
     </main>
-
-</body>
-
-</html>
+    <% include partials/_footer.ejs %>

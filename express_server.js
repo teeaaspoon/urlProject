@@ -29,7 +29,8 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
     let templateVars = {
         urls: urlDatabase,
-        username: req.cookies["username"]
+        username: req.cookies["username"],
+        errors: []
     };
     res.render("urls_index", templateVars);
 });
@@ -38,7 +39,8 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
     let templateVars = {
         urls: urlDatabase,
-        username: req.cookies["username"]
+        username: req.cookies["username"],
+        errors: []
     };
     res.render("urls_new", templateVars);
 });
@@ -47,7 +49,8 @@ app.get("/urls/:id", (req, res) => {
     let templateVars = {
         shortURL: req.params.id,
         urls: urlDatabase,
-        username: req.cookies["username"]
+        username: req.cookies["username"],
+        errors: []
     };
     res.render("urls_show", templateVars);
 });
@@ -55,12 +58,26 @@ app.get("/urls/:id", (req, res) => {
 // waits for a post to /urls and redirects them to the page where they can look at the short and long url
 app.post("/urls", (req, res) => {
     //CHECK IF REQ.BODY IS EMPTY STRING IF IT IS ADD ERROR
-    // generates a random 6 alpha numeric string
-    var shortURL = generateRandomString();
+    var errors = [];
+    if (req.body["longURL"] == "") {
+        errors.push("INVALID URL");
+    }
+    if (errors.length > 0) {
+        let templateVars = {
+            shortURL: req.params.id,
+            urls: urlDatabase,
+            username: req.cookies["username"],
+            errors: errors
+        };
+        res.render("urls_new", templateVars);
+    } else {
+        // generates a random 6 alpha numeric string
+        var shortURL = generateRandomString();
 
-    // adds the long url to database
-    urlDatabase[shortURL] = req.body["longURL"];
-    res.redirect(`/urls/${shortURL}`);
+        // adds the long url to database
+        urlDatabase[shortURL] = req.body["longURL"];
+        res.redirect(`/urls/${shortURL}`);
+    }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -102,10 +119,13 @@ app.post("/login", (req, res) => {
 
 // route to logout
 app.post("/logout", (req, res) => {
-    console.log(req.cookies);
-
     res.clearCookie("username");
     res.redirect("/urls");
+});
+
+//route to register
+app.get("/register", (req, res) => {
+    res.render("urls_register");
 });
 
 app.listen(PORT, function() {
@@ -121,5 +141,3 @@ function generateRandomString() {
     }
     return result;
 }
-
-//test

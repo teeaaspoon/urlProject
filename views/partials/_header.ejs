@@ -1,23 +1,53 @@
-<a href='/urls'>
-    <h1>URL SHORTENER</h1>
-</a>
-<a href="/urls/new">
-    <h2>Shorten a New Link</h2>
-</a>
+<!DOCTYPE html>
+<html>
 
-<% if (username == undefined) { %>
-    <form action="/login" method="post">
-        <input type="text" placeholder="username" name="username">
-        <input type="submit" value="submit">
-    </form>
-    <% } else {%>
-        <div>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>TinyApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
 
-            <form action="/logout" method="post">
-                <label for="username">
-                    <%= username %>
-                </label>
-                <input type="submit" value="Logout">
-            </form>
-        </div>
-        <% } %>
+</head>
+
+
+
+<body class="container" style="background-color: white">
+
+
+
+    <header>
+        <nav class="navbar">
+            <ul class="nav navbar-nav">
+                <li href='/urls' class="nav-item">
+                    <a href="/urls" class="nav-link">UrLShOrTeNeR</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/urls/new">Shorten a New Link</a>
+                </li>
+            </ul>
+
+            <ul class="nav navbar-right">
+                <li class="nav-item">
+                    <% if (username == undefined) { %>
+                        <form action="/login" method="post">
+                            <input type="text" placeholder="username" name="username">
+                            <input class="btn btn-success" type="submit" value="submit">
+                        </form>
+                        <% } else {%>
+                            <div>
+
+                                <form action="/logout" method="post">
+                                    <label for="username">
+                                        <%= username %>
+                                    </label>
+                                    <input class="btn btn-primary" type="submit" value="Logout">
+                                </form>
+                            </div>
+                            <% } %>
+                </li>
+            </ul>
+        </nav>
+
+    </header>
