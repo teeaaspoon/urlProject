@@ -121,8 +121,5 @@ function generateRandomString() {
     }
     return result;
 }
-<<<<<<< HEAD
 
 // comment test asdsadfasfdsafasdfsafdsa
-=======
->>>>>>> feature/cookies
