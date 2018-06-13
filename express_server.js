@@ -11,9 +11,22 @@ app.use(cookieParser());
 // use ejs as templating engine
 app.set("view engine", "ejs");
 
-var urlDatabase = {
+const urlDatabase = {
     b2xVn2: "http://www.lighthouselabs.ca",
     "9sm5xK": "http://www.google.com"
+};
+
+const usersDB = {
+    randomUID: {
+        id: "randomUID",
+        email: "user@example.com",
+        password: "purple-monkey-dinosaur"
+    },
+    random2UID: {
+        id: "randomUID",
+        email: "user2@example.com",
+        password: "dishwasher-funk"
+    }
 };
 
 app.get("/", (req, res) => {
@@ -154,7 +167,21 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-    console.log(req.body);
+    const newUser = {};
+    // gets the info for the object
+    const id = generateRandomString();
+    const email = req.body["email"];
+    const password = req.body["password"];
+    // put the info into an object
+    newUser["id"] = id;
+    newUser["email"] = email;
+    newUser["password"] = password;
+    // adds into the newUser usersDB
+    usersDB[id] = newUser;
+    console.log(usersDB);
+    // sets the cookie to userid cookie
+    res.cookie("user_id", id);
+    res.redirect("/urls");
 });
 
 app.listen(PORT, function() {
