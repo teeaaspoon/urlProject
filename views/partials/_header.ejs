@@ -17,6 +17,7 @@
 
 
 
+
     <header>
         <nav class="navbar">
             <ul class="nav navbar-nav">
@@ -51,3 +52,11 @@
         </nav>
 
     </header>
+
+    <ul style="color: red; background: pink">
+        <%  errors.forEach(function(error) { %>
+            <li>
+                <%= error %>
+            </li>
+            <% }) %>
+    </ul>

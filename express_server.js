@@ -113,8 +113,24 @@ app.get("/u/:shortURL", (req, res) => {
 
 // route to login
 app.post("/login", (req, res) => {
-    res.cookie("username", req.body["username"]);
-    res.redirect("/urls");
+    //check if blank username
+    var errors = [];
+
+    if (req.body["username"] == "") {
+        errors.push("invalid username");
+    }
+    if (errors.length > 0) {
+        let templateVars = {
+            shortURL: req.params.id,
+            urls: urlDatabase,
+            username: req.cookies["username"],
+            errors: errors
+        };
+        res.render("urls_index", templateVars);
+    } else {
+        res.cookie("username", req.body["username"]);
+        res.redirect("/urls");
+    }
 });
 
 // route to logout
@@ -123,7 +139,7 @@ app.post("/logout", (req, res) => {
     res.redirect("/urls");
 });
 
-//route to register
+// route to register
 app.get("/register", (req, res) => {
     res.render("urls_register");
 });
