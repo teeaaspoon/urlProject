@@ -167,6 +167,21 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+    // if email or password are empty, send back response with 400
+    if (req.body["email"] === "" || req.body["password"] === "") {
+        console.log("empty email/pass");
+
+        res.status(400).send("Error No Email");
+    }
+
+    // check if email already in DB
+    const DBValues = Object.values(usersDB);
+    DBValues.forEach(element => {
+        if (req.body["email"] === element["email"]) {
+            res.status(400).send("Error Email Already Exists");
+        }
+    });
+
     const newUser = {};
     // gets the info for the object
     const id = generateRandomString();
