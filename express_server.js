@@ -64,7 +64,11 @@ app.get("/urls/new", (req, res) => {
     if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
-    res.render("urls_new", templateVars);
+    if (templateVars["userInfo"] === undefined) {
+        res.render("urls_login", templateVars);
+    } else {
+        res.render("urls_new", templateVars);
+    }
 });
 
 app.get("/urls/:id", (req, res) => {
