@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 8080;
@@ -21,13 +22,13 @@ const usersDB = {
     randomUID: {
         id: "randomUID",
         email: "user@example.com",
-        password: "purple",
+        password: bcrypt.hashSync("purple", 10),
         links: ["b2xVn2", "traNcE"]
     },
     random2UID: {
         id: "randomUID",
         email: "user2@example.com",
-        password: "dishwasher-funk",
+        password: bcrypt.hashSync("dishwasher-funk", 10),
         links: ["9sm5xK"]
     }
 };
@@ -197,7 +198,7 @@ app.post("/login", (req, res) => {
         if (req.body["email"] === element["email"]) {
             console.log("found email, now check password");
             validEmail = true;
-            if (req.body["password"] === element["password"]) {
+            if (bcrypt.compareSync(req.body["password"], element["password"])) {
                 console.log("match! logged in");
                 validPassword = true;
                 res.cookie("user_id", element["id"]);
@@ -205,6 +206,7 @@ app.post("/login", (req, res) => {
             }
         }
     });
+
     if (validEmail === true && validPassword === false) {
         console.log("Wrong Password");
         res.status(403).send("Wrong Password");
@@ -251,22 +253,28 @@ app.post("/register", (req, res) => {
     if (req.body["email"] === "" || req.body["password"] === "") {
         console.log("empty email/pass");
 
-        res.status(400).send("Error No Email");
+        res.status(400).send("Error Empty Email/Password");
+        return;
     }
-
     // check if email already in DB
+    var emailExists = false;
     const DBValues = Object.values(usersDB);
     DBValues.forEach(element => {
         if (req.body["email"] === element["email"]) {
-            res.status(400).send("Error Email Already Exists");
+            emailExists = true;
         }
     });
+
+    if (emailExists) {
+        res.status(400).send("Error Email Already Exists");
+        return;
+    }
 
     const newUser = {};
     // gets the info for the object
     const id = generateRandomString();
     const email = req.body["email"];
-    const password = req.body["password"];
+    const password = bcrypt.hashSync(req.body["password"], 10);
     // put the info into an object
     newUser["id"] = id;
     newUser["email"] = email;
