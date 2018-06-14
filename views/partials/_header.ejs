@@ -34,9 +34,9 @@
 
             <ul class="nav navbar">
                 <li class="nav-item">
-                    <% if (username == undefined) { %>
-                        <form action="/login" method="post">
-                            <input type="text" placeholder="username" name="username">
+                    <% if (userInfo == undefined) { %>
+                        <form action="/login" method="get">
+
                             <input class="btn btn-success" type="submit" value="Login">
                         </form>
                         <% } else {%>
@@ -44,7 +44,7 @@
 
                                 <form action="/logout" method="post">
                                     <label for="username">
-                                        <%= username %>
+                                        <%= userInfo["email"] %>
                                     </label>
                                     <input class="btn btn-primary" type="submit" value="Logout">
                                 </form>
@@ -52,7 +52,7 @@
                             <% } %>
                 </li>
                 <li class="mr-auto">
-                    <form action="/register">
+                    <form action="/register" method="get">
                         <input type="submit" value="Register" class="btn btn-primary">
                     </form>
                 </li>
