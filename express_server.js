@@ -1,13 +1,19 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
 const app = express();
 const PORT = 8080;
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+
+app.use(
+    cookieSession({
+        name: "session",
+        keys: ["user_id"]
+    })
+);
 
 // use ejs as templating engine
 app.set("view engine", "ejs");
@@ -15,7 +21,7 @@ app.set("view engine", "ejs");
 const urlDatabase = {
     b2xVn2: "http://www.lighthouselabs.ca",
     "9sm5xK": "http://www.google.com",
-    traNcE: "http://www.anjunabeats.com"
+    traNcE: "https://soundcloud.com/bryankearney"
 };
 
 const usersDB = {
@@ -34,15 +40,7 @@ const usersDB = {
 };
 
 app.get("/", (req, res) => {
-    res.end("<html><h1>Welcome To The Link Shortener</h1></html>");
-});
-
-app.get("/urls.json", (req, res) => {
-    res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-    res.end("<html><body>Hello <b>World</b></body></html>\n");
+    res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
@@ -52,8 +50,8 @@ app.get("/urls", (req, res) => {
         errors: []
     };
     // if the cookie exists set the userInfo to DB[user_id] from cookie
-    if (req.cookies["user_id"] !== undefined) {
-        templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
     res.render("urls_index", templateVars);
 });
@@ -65,9 +63,10 @@ app.get("/urls/new", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] !== undefined) {
-        templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
+    // only logged in users can access the page to create a new short link
     if (templateVars["userInfo"] === undefined) {
         res.render("urls_login", templateVars);
     } else {
@@ -75,6 +74,7 @@ app.get("/urls/new", (req, res) => {
     }
 });
 
+// renders page for each specific short link
 app.get("/urls/:id", (req, res) => {
     const templateVars = {
         shortURL: req.params.id,
@@ -82,15 +82,15 @@ app.get("/urls/:id", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] !== undefined) {
-        templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
     // redirects to login if userInfo is undefined
-    if (!req.cookies["user_id"]) {
+    if (!req.session["user_id"]) {
         res.redirect(`/login`);
         // check if urls/:id is an id that belongs to the logged in user
     } else if (
-        !usersDB[req.cookies["user_id"]]["links"].includes(req.params.id)
+        !usersDB[req.session["user_id"]]["links"].includes(req.params.id)
     ) {
         res.redirect(`/urls`);
     } else {
@@ -99,8 +99,7 @@ app.get("/urls/:id", (req, res) => {
 });
 
 // This route creates a new link
-// waits for a post to /urls and redirects them to the
-// page where they can look at the short and long url
+// waits for a post to /urls and redirects them to the page for that specific link
 app.post("/urls", (req, res) => {
     // Checks if an empty string was entered
     var errors = [];
@@ -114,14 +113,14 @@ app.post("/urls", (req, res) => {
             userInfo: undefined,
             errors: errors
         };
-        if (req.cookies["user_id"] !== undefined) {
-            templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
+        if (req.session["user_id"] !== undefined) {
+            templateVars["userInfo"] = usersDB[req.session["user_id"]];
         }
         res.render("urls_new", templateVars);
     } else {
         // generates a random 6 alpha numeric string
         var shortURL = generateRandomString();
-        var userID = req.cookies["user_id"];
+        var userID = req.session["user_id"];
 
         // adds the long url to database
         urlDatabase[shortURL] = req.body["longURL"];
@@ -134,17 +133,17 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-    // need to make sure there is a cookie ID otherwise you can delete links from curl
-    if (req.cookies["user_id"]) {
+    // need to make sure a cookie ID exists otherwise you can delete links from curl
+    if (req.session["user_id"]) {
         const shortURL = req.params["id"];
 
         // check to see if the shortURL being deleted is part of the user's links
-        if (usersDB[req.cookies["user_id"]]["links"].includes(shortURL)) {
+        if (usersDB[req.session["user_id"]]["links"].includes(shortURL)) {
             // deletes the shortUrl entry from the url database
             delete urlDatabase[shortURL];
 
             // delete the shortUrl entry in the users database
-            const userID = req.cookies["user_id"];
+            const userID = req.session["user_id"];
 
             // filters out the deleted URL from the array and saves to new variable
             const newLinksArray = usersDB[userID]["links"].filter(function(
@@ -164,7 +163,7 @@ app.post("/urls/:id/delete", (req, res) => {
     }
 });
 
-// waits for a post to /urls/:id then updates the link inside
+// Allows user to edit their existing short link to refer to a different long link
 app.post("/urls/:id", (req, res) => {
     const shortURL = req.params["id"];
     const updatedLongURL = req.body["editLongURL"];
@@ -172,9 +171,9 @@ app.post("/urls/:id", (req, res) => {
     res.redirect("/urls");
 });
 
-// redirects the user to whatever the shortURL is in the database
+// redirects the user to whatever the shortURL is in the url database
 app.get("/u/:shortURL", (req, res) => {
-    // got the short url from the id
+    // get the short url from the id
     const shortURL = req.params["shortURL"];
     if (!(shortURL in urlDatabase)) {
         console.log("shortURL doesn't exist. Redirecting to homepage");
@@ -187,13 +186,16 @@ app.get("/u/:shortURL", (req, res) => {
     }
 });
 
-// route to login
+// handles the actioni of logging in
 app.post("/login", (req, res) => {
+    var errors = [];
+
     // check if valid login
     let validEmail = false;
     let validPassword = false;
     const DBValues = Object.values(usersDB);
 
+    // loops through the database and looks for matching email and password
     DBValues.forEach(element => {
         if (req.body["email"] === element["email"]) {
             console.log("found email, now check password");
@@ -201,21 +203,31 @@ app.post("/login", (req, res) => {
             if (bcrypt.compareSync(req.body["password"], element["password"])) {
                 console.log("match! logged in");
                 validPassword = true;
-                res.cookie("user_id", element["id"]);
+                req.session["user_id"] = element["id"];
                 res.redirect("/urls");
             }
         }
     });
 
     if (validEmail === true && validPassword === false) {
-        console.log("Wrong Password");
-        res.status(403).send("Wrong Password");
+        errors.push("Wrong Password");
+        res.status(403);
     } else if (validEmail === false && validPassword === false) {
-        console.log("Wrong Username");
-        res.status(403).send("Wrong Username");
+        errors.push("Wrong Username");
+        res.status(403);
+    }
+    // if there is an error, re-render the page with the error, which will display on the ejs file
+    if (errors.length > 0) {
+        const templateVars = {
+            shortURL: req.params.id,
+            urls: urlDatabase,
+            userInfo: undefined,
+            errors: errors
+        };
+        res.render("urls_login", templateVars);
     }
 });
-
+// renders the login page
 app.get("/login", (req, res) => {
     const templateVars = {
         shortURL: req.params.id,
@@ -223,14 +235,14 @@ app.get("/login", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] !== undefined) {
-        templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
     res.render("urls_login", templateVars);
 });
 // route to logout
 app.post("/logout", (req, res) => {
-    res.clearCookie("user_id");
+    req.session = null;
     res.redirect("/urls");
 });
 
@@ -242,19 +254,18 @@ app.get("/register", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] !== undefined) {
-        templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
     res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
+    var errors = [];
     // if email or password are empty, send back response with 400
     if (req.body["email"] === "" || req.body["password"] === "") {
-        console.log("empty email/pass");
-
-        res.status(400).send("Error Empty Email/Password");
-        return;
+        errors.push("Empty Email/Password");
+        res.status(400);
     }
     // check if email already in DB
     var emailExists = false;
@@ -266,7 +277,18 @@ app.post("/register", (req, res) => {
     });
 
     if (emailExists) {
-        res.status(400).send("Error Email Already Exists");
+        errors.push("Email Already Exists");
+        res.status(400);
+    }
+
+    if (errors.length > 0) {
+        const templateVars = {
+            shortURL: req.params.id,
+            urls: urlDatabase,
+            userInfo: undefined,
+            errors: errors
+        };
+        res.render("urls_register", templateVars);
         return;
     }
 
@@ -283,12 +305,12 @@ app.post("/register", (req, res) => {
     // adds into the newUser usersDB
     usersDB[id] = newUser;
     // sets the cookie to userid cookie
-    res.cookie("user_id", id);
+    req.session["user_id"] = id;
     res.redirect("/urls");
 });
 
 app.listen(PORT, function() {
-    console.log(`Example app is listening on port ${PORT}`);
+    console.log(`TinyApp is listening on port ${PORT}`);
 });
 
 function generateRandomString() {
