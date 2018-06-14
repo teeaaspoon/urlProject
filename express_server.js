@@ -84,7 +84,17 @@ app.get("/urls/:id", (req, res) => {
     if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
-    res.render("urls_show", templateVars);
+    // redirects to login if userInfo is undefined
+    if (!req.cookies["user_id"]) {
+        res.redirect(`/login`);
+        // check if urls/:id is an id that belongs to the logged in user
+    } else if (
+        !usersDB[req.cookies["user_id"]]["links"].includes(req.params.id)
+    ) {
+        res.redirect(`/urls`);
+    } else {
+        res.render("urls_show", templateVars);
+    }
 });
 
 // This route creates a new link
@@ -123,22 +133,34 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-    const shortURL = req.params["id"];
+    // need to make sure there is a cookie ID otherwise you can delete links from curl
+    if (req.cookies["user_id"]) {
+        const shortURL = req.params["id"];
 
-    // deletes the shortUrl entry from the url database
-    delete urlDatabase[shortURL];
+        // check to see if the shortURL being deleted is part of the user's links
+        if (usersDB[req.cookies["user_id"]]["links"].includes(shortURL)) {
+            // deletes the shortUrl entry from the url database
+            delete urlDatabase[shortURL];
 
-    // delete the shortUrl entry in the users database
-    const userID = req.cookies["user_id"];
+            // delete the shortUrl entry in the users database
+            const userID = req.cookies["user_id"];
 
-    // filters out the deleted URL from the array and saves to new variable
-    const newLinksArray = usersDB[userID]["links"].filter(function(element) {
-        return element !== shortURL;
-    });
-    // set the newLinksArray as the usersDB.userID.links
-    usersDB[userID]["links"] = newLinksArray;
+            // filters out the deleted URL from the array and saves to new variable
+            const newLinksArray = usersDB[userID]["links"].filter(function(
+                element
+            ) {
+                return element !== shortURL;
+            });
+            // set the newLinksArray as the usersDB.userID.links
+            usersDB[userID]["links"] = newLinksArray;
 
-    res.redirect(`/urls`);
+            res.redirect(`/urls`);
+        } else {
+            res.redirect(`/urls`);
+        }
+    } else {
+        res.redirect(`/urls`);
+    }
 });
 
 // waits for a post to /urls/:id then updates the link inside
@@ -155,7 +177,7 @@ app.get("/u/:shortURL", (req, res) => {
     const shortURL = req.params["shortURL"];
     if (!(shortURL in urlDatabase)) {
         console.log("shortURL doesn't exist. Redirecting to homepage");
-        res.redirect("/");
+        res.redirect("/urls");
     } else {
         // find the long URL in the database
         const longURL = urlDatabase[shortURL];
