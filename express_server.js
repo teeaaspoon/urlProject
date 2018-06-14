@@ -20,7 +20,7 @@ const usersDB = {
     randomUID: {
         id: "randomUID",
         email: "user@example.com",
-        password: "purple-monkey-dinosaur"
+        password: "purple"
     },
     random2UID: {
         id: "randomUID",
@@ -111,7 +111,6 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:id/delete", (req, res) => {
     const shortURL = req.params["id"];
-    console.log(shortURL);
 
     delete urlDatabase[shortURL];
     res.redirect(`/urls`);
@@ -160,8 +159,30 @@ app.post("/login", (req, res) => {
         }
         res.render("urls_index", templateVars);
     } else {
-        res.cookie("username", req.body["username"]);
-        res.redirect("/urls");
+        // check if valid login
+        let validEmail = false;
+        let validPassword = false;
+        const DBValues = Object.values(usersDB);
+
+        DBValues.forEach(element => {
+            if (req.body["email"] === element["email"]) {
+                console.log("found email, now check password");
+                validEmail = true;
+                if (req.body["password"] === element["password"]) {
+                    console.log("match! logged in");
+                    validPassword = true;
+                    res.cookie("user_id", element["id"]);
+                    res.redirect("/urls");
+                }
+            }
+        });
+        if (validEmail === true && validPassword === false) {
+            console.log("Wrong Password");
+            res.status(403).send("Wrong Password");
+        } else if (validEmail === false && validPassword === false) {
+            console.log("Wrong Username");
+            res.status(403).send("Wrong Username");
+        }
     }
 });
 
