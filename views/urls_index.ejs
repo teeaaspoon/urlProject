@@ -4,31 +4,35 @@
 
     <main>
         <h2>Your Links</h2>
-        <table>
-            <tr>
-                <th>Short Link</th>
-                <th>Long Link</th>
-            </tr>
-            <% for(const key in urls){ %>
+        <% if (userInfo) { %>
+            <table>
                 <tr>
-                    <td>
-                        <%= key %>
-                    </td>
-                    <td>
-                        <%= urls[key]%>
-                    </td>
-                    <td>
-                        <a href="/urls/<%=key%>">
-                            <p>Edit</p>
-                        </a>
-                    </td>
-                    <td>
-                        <form method="POST" action="/urls/<%= key %>/delete">
-                            <input type="submit" value="delete">
-                        </form>
-                    </td>
+                    <th>Short Link</th>
+                    <th>Long Link</th>
                 </tr>
-                <% } %>
-        </table>
+
+                <% userInfo["links"].forEach(function(element){ %>
+                    <tr>
+                        <td>
+                            <%= element %>
+                        </td>
+                        <td>
+
+                            <%= urls[element] %>
+                        </td>
+                        <td>
+                            <a href="/urls/<%=element%>">
+                                <p>Edit</p>
+                            </a>
+                        </td>
+                        <td>
+                            <form method="POST" action="/urls/<%= element %>/delete">
+                                <input type="submit" value="delete">
+                            </form>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </table>
+            <% } %>
     </main>
     <% include partials/_footer.ejs %>

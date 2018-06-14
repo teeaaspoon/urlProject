@@ -13,19 +13,22 @@ app.set("view engine", "ejs");
 
 const urlDatabase = {
     b2xVn2: "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com"
+    "9sm5xK": "http://www.google.com",
+    traNcE: "http://www.anjunabeats.com"
 };
 
 const usersDB = {
     randomUID: {
         id: "randomUID",
         email: "user@example.com",
-        password: "purple"
+        password: "purple",
+        links: ["b2xVn2", "traNcE"]
     },
     random2UID: {
         id: "randomUID",
         email: "user2@example.com",
-        password: "dishwasher-funk"
+        password: "dishwasher-funk",
+        links: ["9sm5xK"]
     }
 };
 
@@ -84,6 +87,7 @@ app.get("/urls/:id", (req, res) => {
     res.render("urls_show", templateVars);
 });
 
+// This route creates a new link
 // waits for a post to /urls and redirects them to the
 // page where they can look at the short and long url
 app.post("/urls", (req, res) => {
@@ -106,9 +110,14 @@ app.post("/urls", (req, res) => {
     } else {
         // generates a random 6 alpha numeric string
         var shortURL = generateRandomString();
+        var userID = req.cookies["user_id"];
 
         // adds the long url to database
         urlDatabase[shortURL] = req.body["longURL"];
+
+        // adds the short link into the user objects ["links"]
+        usersDB[userID]["links"].push(shortURL);
+
         res.redirect(`/urls/${shortURL}`);
     }
 });
@@ -116,7 +125,19 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
     const shortURL = req.params["id"];
 
+    // deletes the shortUrl entry from the url database
     delete urlDatabase[shortURL];
+
+    // delete the shortUrl entry in the users database
+    const userID = req.cookies["user_id"];
+
+    // filters out the deleted URL from the array and saves to new variable
+    const newLinksArray = usersDB[userID]["links"].filter(function(element) {
+        return element !== shortURL;
+    });
+    // set the newLinksArray as the usersDB.userID.links
+    usersDB[userID]["links"] = newLinksArray;
+
     res.redirect(`/urls`);
 });
 
@@ -228,6 +249,7 @@ app.post("/register", (req, res) => {
     newUser["id"] = id;
     newUser["email"] = email;
     newUser["password"] = password;
+    newUser["links"] = [];
     // adds into the newUser usersDB
     usersDB[id] = newUser;
     // sets the cookie to userid cookie
