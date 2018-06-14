@@ -51,11 +51,13 @@
                             </div>
                             <% } %>
                 </li>
-                <li class="mr-auto">
-                    <form action="/register" method="get">
-                        <input type="submit" value="Register" class="btn btn-primary">
-                    </form>
-                </li>
+                <% if (userInfo == undefined) { %>
+                    <li class="mr-auto">
+                        <form action="/register" method="get">
+                            <input type="submit" value="Register" class="btn btn-primary">
+                        </form>
+                    </li>
+                    <% } %>
             </ul>
         </nav>
 

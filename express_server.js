@@ -48,7 +48,7 @@ app.get("/urls", (req, res) => {
         errors: []
     };
     // if the cookie exists set the userInfo to DB[user_id] from cookie
-    if (req.cookies["user_id"] != undefined) {
+    if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
     res.render("urls_index", templateVars);
@@ -61,7 +61,7 @@ app.get("/urls/new", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] != undefined) {
+    if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
     res.render("urls_new", templateVars);
@@ -74,7 +74,7 @@ app.get("/urls/:id", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] != undefined) {
+    if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
     res.render("urls_show", templateVars);
@@ -95,7 +95,7 @@ app.post("/urls", (req, res) => {
             userInfo: undefined,
             errors: errors
         };
-        if (req.cookies["user_id"] != undefined) {
+        if (req.cookies["user_id"] !== undefined) {
             templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
         }
         res.render("urls_new", templateVars);
@@ -141,52 +141,32 @@ app.get("/u/:shortURL", (req, res) => {
 
 // route to login
 app.post("/login", (req, res) => {
-    // check if blank username
-    var errors = [];
+    // check if valid login
+    let validEmail = false;
+    let validPassword = false;
+    const DBValues = Object.values(usersDB);
 
-    if (req.body["username"] === "") {
-        errors.push("invalid username");
-    }
-    if (errors.length > 0) {
-        const templateVars = {
-            shortURL: req.params.id,
-            urls: urlDatabase,
-            userInfo: undefined,
-            errors: errors
-        };
-        if (req.cookies["user_id"] != undefined) {
-            templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
-        }
-        res.render("urls_index", templateVars);
-    } else {
-        // check if valid login
-        let validEmail = false;
-        let validPassword = false;
-        const DBValues = Object.values(usersDB);
-
-        DBValues.forEach(element => {
-            if (req.body["email"] === element["email"]) {
-                console.log("found email, now check password");
-                validEmail = true;
-                if (req.body["password"] === element["password"]) {
-                    console.log("match! logged in");
-                    validPassword = true;
-                    res.cookie("user_id", element["id"]);
-                    res.redirect("/urls");
-                }
+    DBValues.forEach(element => {
+        if (req.body["email"] === element["email"]) {
+            console.log("found email, now check password");
+            validEmail = true;
+            if (req.body["password"] === element["password"]) {
+                console.log("match! logged in");
+                validPassword = true;
+                res.cookie("user_id", element["id"]);
+                res.redirect("/urls");
             }
-        });
-        if (validEmail === true && validPassword === false) {
-            console.log("Wrong Password");
-            res.status(403).send("Wrong Password");
-        } else if (validEmail === false && validPassword === false) {
-            console.log("Wrong Username");
-            res.status(403).send("Wrong Username");
         }
+    });
+    if (validEmail === true && validPassword === false) {
+        console.log("Wrong Password");
+        res.status(403).send("Wrong Password");
+    } else if (validEmail === false && validPassword === false) {
+        console.log("Wrong Username");
+        res.status(403).send("Wrong Username");
     }
 });
 
-// route to logout
 app.get("/login", (req, res) => {
     const templateVars = {
         shortURL: req.params.id,
@@ -194,11 +174,12 @@ app.get("/login", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] != undefined) {
+    if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
     res.render("urls_login", templateVars);
 });
+// route to logout
 app.post("/logout", (req, res) => {
     res.clearCookie("user_id");
     res.redirect("/urls");
@@ -212,7 +193,7 @@ app.get("/register", (req, res) => {
         userInfo: undefined,
         errors: []
     };
-    if (req.cookies["user_id"] != undefined) {
+    if (req.cookies["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.cookies["user_id"]];
     }
     res.render("urls_register", templateVars);
