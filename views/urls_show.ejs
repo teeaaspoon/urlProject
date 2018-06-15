@@ -7,7 +7,7 @@
                 /u/<%= shortURL %>
             </a>
         </h2>
-        <form action="/urls/<%= shortURL %>" method="post">
+        <form action="/urls/<%= shortURL %>?_method=PUT" method="post">
             <input id="editLongURL" type="text" name="editLongURL" value="<%= urls[shortURL] %>" class="col-lg-8">
             <input type="submit" value="Update" class="btn btn-success">
         </form>

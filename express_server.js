@@ -2,11 +2,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
+const methodOverride = require("method-override");
 
 const app = express();
 const PORT = 8080;
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(methodOverride("_method"));
 
 app.use(
     cookieSession({
@@ -146,7 +148,7 @@ app.post("/urls", (req, res) => {
     }
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id", (req, res) => {
     const templateVars = {
         shortURL: req.params.id,
         urls: urlDatabase,
@@ -188,7 +190,7 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 // Allows user to edit their existing short link to refer to a different long link
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
     const templateVars = {
         shortURL: req.params.id,
         urls: urlDatabase,
