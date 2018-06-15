@@ -14,7 +14,8 @@
                 <% userInfo["links"].forEach(function(element){ %>
                     <tr>
                         <td>
-                            <%= element %>
+                            <a href="/u/<%=element%>">/u/<%=element%></a>
+
                         </td>
                         <td>
 
@@ -22,12 +23,12 @@
                         </td>
                         <td>
                             <a href="/urls/<%=element%>">
-                                <p>Edit</p>
+                                <button class="btn btn-warning">Edit</button>
                             </a>
                         </td>
                         <td>
                             <form method="POST" action="/urls/<%= element %>/delete">
-                                <input type="submit" value="delete">
+                                <input type="submit" value="delete" class="btn btn-danger">
                             </form>
                         </td>
                     </tr>

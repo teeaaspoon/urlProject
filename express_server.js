@@ -32,7 +32,7 @@ const usersDB = {
         links: ["b2xVn2", "traNcE"]
     },
     random2UID: {
-        id: "randomUID",
+        id: "random2UID",
         email: "user2@example.com",
         password: bcrypt.hashSync("dishwasher-funk", 10),
         links: ["9sm5xK"]
@@ -40,7 +40,11 @@ const usersDB = {
 };
 
 app.get("/", (req, res) => {
-    res.redirect("/urls");
+    if (!req.session["user_id"]) {
+        res.redirect("/login");
+    } else {
+        res.redirect("/urls");
+    }
 });
 
 app.get("/urls", (req, res) => {
@@ -52,8 +56,11 @@ app.get("/urls", (req, res) => {
     // if the cookie exists set the userInfo to DB[user_id] from cookie
     if (req.session["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.session["user_id"]];
+        res.render("urls_index", templateVars);
+    } else if (req.session["user_id"] === undefined) {
+        templateVars["errors"].push("Please Login to Shorten Links");
+        res.render("urls_index", templateVars);
     }
-    res.render("urls_index", templateVars);
 });
 
 // renders page for new url to shorten
@@ -92,7 +99,10 @@ app.get("/urls/:id", (req, res) => {
     } else if (
         !usersDB[req.session["user_id"]]["links"].includes(req.params.id)
     ) {
-        res.redirect(`/urls`);
+        templateVars["errors"].push(
+            "Shortlink does not exist or does not belong to you"
+        );
+        res.render("urls_index", templateVars);
     } else {
         res.render("urls_show", templateVars);
     }
@@ -101,23 +111,27 @@ app.get("/urls/:id", (req, res) => {
 // This route creates a new link
 // waits for a post to /urls and redirects them to the page for that specific link
 app.post("/urls", (req, res) => {
-    // Checks if an empty string was entered
-    var errors = [];
-    if (req.body["longURL"] === "") {
-        errors.push("INVALID URL");
+    const templateVars = {
+        shortURL: undefined,
+        urls: urlDatabase,
+        userInfo: undefined,
+        errors: []
+    };
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
-    if (errors.length > 0) {
-        const templateVars = {
-            shortURL: req.params.id,
-            urls: urlDatabase,
-            userInfo: undefined,
-            errors: errors
-        };
-        if (req.session["user_id"] !== undefined) {
-            templateVars["userInfo"] = usersDB[req.session["user_id"]];
-        }
+    // first check if user is logged
+    if (!req.session["user_id"]) {
+        templateVars["errors"].push("Please Login");
+        res.render("urls_index", templateVars);
+        return;
+    }
+    // Checks if no link was entered
+    if (req.body["longURL"] === "http://") {
+        templateVars["errors"].push("INVALID URL");
         res.render("urls_new", templateVars);
     } else {
+        // this is a valid new Link
         // generates a random 6 alpha numeric string
         var shortURL = generateRandomString();
         var userID = req.session["user_id"];
@@ -133,6 +147,12 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+    const templateVars = {
+        shortURL: req.params.id,
+        urls: urlDatabase,
+        userInfo: undefined,
+        errors: []
+    };
     // need to make sure a cookie ID exists otherwise you can delete links from curl
     if (req.session["user_id"]) {
         const shortURL = req.params["id"];
@@ -145,7 +165,7 @@ app.post("/urls/:id/delete", (req, res) => {
             // delete the shortUrl entry in the users database
             const userID = req.session["user_id"];
 
-            // filters out the deleted URL from the array and saves to new variable
+            // filters out the deleted URL from the array and saves to new Array
             const newLinksArray = usersDB[userID]["links"].filter(function(
                 element
             ) {
@@ -156,28 +176,61 @@ app.post("/urls/:id/delete", (req, res) => {
 
             res.redirect(`/urls`);
         } else {
-            res.redirect(`/urls`);
+            templateVars["errors"].push(
+                "You are only allowed to delete your own links"
+            );
+            res.render("urls_index", templateVars);
         }
     } else {
-        res.redirect(`/urls`);
+        templateVars["errors"].push("Please Login to Delete your links");
+        res.render("urls_index", templateVars);
     }
 });
 
 // Allows user to edit their existing short link to refer to a different long link
 app.post("/urls/:id", (req, res) => {
+    const templateVars = {
+        shortURL: req.params.id,
+        urls: urlDatabase,
+        userInfo: undefined,
+        errors: []
+    };
+    // checks if user is logged in
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
+    } else if (req.session["user_id"] === undefined) {
+        templateVars["errors"].push("Please Login");
+        res.render("urls_login", templateVars);
+        return;
+    }
     const shortURL = req.params["id"];
     const updatedLongURL = req.body["editLongURL"];
+    // if user is logged in but does not own the url of given ID
+    if (!templateVars["userInfo"]["links"].includes(shortURL)) {
+        templateVars["errors"].push("You do not own this short link");
+        res.render("urls_index", templateVars);
+        return;
+    }
     urlDatabase[shortURL] = updatedLongURL;
     res.redirect("/urls");
 });
 
 // redirects the user to whatever the shortURL is in the url database
 app.get("/u/:shortURL", (req, res) => {
+    const templateVars = {
+        shortURL: req.params.shortURL,
+        urls: urlDatabase,
+        userInfo: undefined,
+        errors: []
+    };
+    if (req.session["user_id"] !== undefined) {
+        templateVars["userInfo"] = usersDB[req.session["user_id"]];
+    }
     // get the short url from the id
     const shortURL = req.params["shortURL"];
     if (!(shortURL in urlDatabase)) {
-        console.log("shortURL doesn't exist. Redirecting to homepage");
-        res.redirect("/urls");
+        templateVars["errors"].push("ShortURL doesn't exist.");
+        res.render("urls_index", templateVars);
     } else {
         // find the long URL in the database
         const longURL = urlDatabase[shortURL];
@@ -186,7 +239,7 @@ app.get("/u/:shortURL", (req, res) => {
     }
 });
 
-// handles the actioni of logging in
+// handles the action of logging in
 app.post("/login", (req, res) => {
     var errors = [];
 
@@ -198,11 +251,16 @@ app.post("/login", (req, res) => {
     // loops through the database and looks for matching email and password
     DBValues.forEach(element => {
         if (req.body["email"] === element["email"]) {
+            console.log(req.body["email"]);
+            console.log(element["email"]);
+
             console.log("found email, now check password");
             validEmail = true;
             if (bcrypt.compareSync(req.body["password"], element["password"])) {
                 console.log("match! logged in");
                 validPassword = true;
+                // if email and password match, sets cookie and renders
+
                 req.session["user_id"] = element["id"];
                 res.redirect("/urls");
             }
@@ -219,7 +277,7 @@ app.post("/login", (req, res) => {
     // if there is an error, re-render the page with the error, which will display on the ejs file
     if (errors.length > 0) {
         const templateVars = {
-            shortURL: req.params.id,
+            shortURL: undefined,
             urls: urlDatabase,
             userInfo: undefined,
             errors: errors
@@ -230,18 +288,22 @@ app.post("/login", (req, res) => {
 // renders the login page
 app.get("/login", (req, res) => {
     const templateVars = {
-        shortURL: req.params.id,
+        shortURL: undefined,
         urls: urlDatabase,
         userInfo: undefined,
         errors: []
     };
+    // if user is already logged in, redirects to urls.
     if (req.session["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.session["user_id"]];
+        res.redirect("/urls");
+        return;
     }
     res.render("urls_login", templateVars);
 });
 // route to logout
 app.post("/logout", (req, res) => {
+    // deletes the cookie
     req.session = null;
     res.redirect("/urls");
 });
@@ -249,13 +311,16 @@ app.post("/logout", (req, res) => {
 // route to register
 app.get("/register", (req, res) => {
     const templateVars = {
-        shortURL: req.params.id,
+        shortURL: undefined,
         urls: urlDatabase,
         userInfo: undefined,
         errors: []
     };
+    // if user is already logged in it will redirect them to /urls
     if (req.session["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.session["user_id"]];
+        res.redirect("/urls");
+        return;
     }
     res.render("urls_register", templateVars);
 });
@@ -281,9 +346,10 @@ app.post("/register", (req, res) => {
         res.status(400);
     }
 
+    // returns the html with whatever error there is, if no error it continues to create the user
     if (errors.length > 0) {
         const templateVars = {
-            shortURL: req.params.id,
+            shortURL: undefined,
             urls: urlDatabase,
             userInfo: undefined,
             errors: errors

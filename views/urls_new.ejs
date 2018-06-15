@@ -1,12 +1,13 @@
 <% include partials/_header.ejs %>
 
 
+    <h2>Enter a link to shorten</h2>
+    <p>Remember to include http://</p>
 
-
-    <form action="/urls" method="post" style="margin:150px;">
+    <form action="/urls" method="post">
         <label for="longURL">Enter a URL:</label>
-        <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
-        <input type="submit" value="submit">
+        <input id="longURL" type="text" name="longURL" value="http://" class="col-lg-8">
+        <input type="submit" value="Shorten Me!" class="btn btn-success">
     </form>
 
 
