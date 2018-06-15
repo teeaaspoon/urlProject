@@ -1,7 +1,4 @@
 <% include partials/_header.ejs %>
-
-
-
     <main>
         <h2>Your Links</h2>
         <% if (userInfo) { %>
@@ -12,30 +9,28 @@
                 </tr>
 
                 <% userInfo["links"].forEach(function(element){ %>
-                    <tr>
-                        <td>
-                            <a href="/u/<%=element%>">/u/<%=element%></a>
-
-                        </td>
-                        <td>
-
-                            <%= urls[element] %>
-                        </td>
-                        <td>
-                            <a href="/urls/<%=element%>">
-                                <button class="btn btn-warning">Edit</button>
-                            </a>
-                        </td>
-                        <td>
-                            <form method="post" action="/urls/<%= element %>?_method=DELETE">
-                                <input type="submit" value="delete" class="btn btn-danger">
-                            </form>
-                        </td>
-                    </tr>
-                    <% }); %>
+                <tr>
+                    <td>
+                        <a href="/u/<%=element%>">/u/<%=element%></a>
+                    </td>
+                    <td>
+                        <%= urls[element] %>
+                    </td>
+                    <td>
+                        <a href="/urls/<%=element%>">
+                            <button class="btn btn-warning">Edit</button>
+                        </a>
+                    </td>
+                    <td>
+                        <form method="post" action="/urls/<%= element %>?_method=DELETE">
+                            <input type="submit" value="delete" class="btn btn-danger">
+                        </form>
+                    </td>
+                </tr>
+                <% }); %>
             </table>
             <% } else { %>
-                <p>Please login or register first</p>
-                <% } %>
+             <p>Please login or register first</p>
+            <% } %>
     </main>
-    <% include partials/_footer.ejs %>
+<% include partials/_footer.ejs %>
