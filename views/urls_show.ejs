@@ -11,17 +11,34 @@
         </form>
         <table>
             <tr>
-                <th>Visits 50</th>
-                <th>Unique Visits 20</th>
+                <th>Visits <%= urls[shortURL]["visits"].length %></th>
+                <th>Unique Visits <%=calculateUniquePageViews(urls[shortURL]["visits"])%></th>
             </tr>
             <tr>
                 <th>TimeStamp</th>
                 <th>Visitor id</th>
             </tr>
+            <% urls[shortURL]["visits"].forEach(element => { %>
             <tr>
-                <td><%= Date.now() %></td>
-                <td> somelonglonglonglonglonglonglonglonglongstring </td>
+                <td><%= element[0] %></td>
+                <td><%= element[1] %></td>
             </tr>
+            <% }) %>
         </table>
     </main>
 <% include partials/_footer.ejs %>
+
+
+<% function calculateUniquePageViews(arrayOfVisits) {
+    var uniqueVisitorArray = [];
+    var count = 0
+    arrayOfVisits.forEach(function (element) {
+        if (uniqueVisitorArray.includes(element[1])){
+            // do nothing
+        } else {
+            uniqueVisitorArray.push(element[1]);
+            count += 1;
+        }
+    });
+    return count;
+}%>

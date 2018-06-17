@@ -25,7 +25,8 @@ const urlDatabase = {
         longURL: "http://www.lighthouselabs.ca",
         visits: [
             ["someTime", "someVisitorID"],
-            ["someOtherTime", "someOtherVisitorID"]
+            ["someOtherTime", "someOtherVisitorID"],
+            ["someNextTime", "someVisitorID"]
         ]
     },
     "9sm5xK": {
