@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const methodOverride = require("method-override");
-const moment = require("moment");
+const moment = require("moment-timezone");
 
 const app = express();
 const PORT = 8080;
@@ -256,13 +256,22 @@ app.get("/u/:shortURL", (req, res) => {
     } else if (req.session["user_id"] === undefined) {
         req.session["visitor_id"] = generateRandomString();
     }
+
     // add their visit to the urlDatabase[shortURL][visits]
     var visitorArray = [];
     if (req.session["user_id"] !== undefined) {
-        visitorArray.push(moment().format());
+        visitorArray.push(
+            moment()
+                .tz(moment.tz.guess())
+                .format("MMMM Do YYYY, h:mm:ss a")
+        );
         visitorArray.push(req.session["user_id"]);
     } else if (req.session["user_id"] === undefined) {
-        visitorArray.push(moment().format("MMMM Do YYYY, h:mm:ss a"));
+        visitorArray.push(
+            moment()
+                .tz(moment.tz.guess())
+                .format("MMMM Do YYYY, h:mm:ss a")
+        );
         visitorArray.push(req.session["visitor_id"]);
     }
     urlDatabase[req.params.shortURL]["visits"].push(visitorArray);
