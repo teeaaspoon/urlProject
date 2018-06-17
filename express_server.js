@@ -153,6 +153,7 @@ app.post("/urls", (req, res) => {
 
         // adds the long url to database
         urlDatabase[shortURL] = {};
+        urlDatabase[shortURL]["visits"] = [];
         urlDatabase[shortURL]["longURL"] = req.body["longURL"];
 
         // adds the short link into the user objects ["links"]
@@ -247,7 +248,24 @@ app.get("/u/:shortURL", (req, res) => {
     // if there is no userid, generate a visitor id session
     // add it to the list of visitors
     // before login or register, clear the cookies
-    //
+
+    // if there isn't a user, generate a visitor id session, if visitor id exists do nothing
+    if (req.session["visitor_id"]) {
+        // do nothing
+    } else if (req.session["user_id"] === undefined) {
+        req.session["visitor_id"] = generateRandomString();
+    }
+    // add their visit to the urlDatabase[shortURL][visits]
+    var visitorArray = [];
+    if (req.session["user_id"] !== undefined) {
+        visitorArray.push("someTime");
+        visitorArray.push(req.session["user_id"]);
+    } else if (req.session["user_id"] === undefined) {
+        visitorArray.push("someTime");
+        visitorArray.push(req.session["visitor_id"]);
+    }
+    urlDatabase[req.params.shortURL]["visits"].push(visitorArray);
+    // Remember to clear cookies before login or register
 
     // get the short url from the id
     const shortURL = req.params["shortURL"];
@@ -274,16 +292,12 @@ app.post("/login", (req, res) => {
     // loops through the database and looks for matching email and password
     DBValues.forEach(element => {
         if (req.body["email"] === element["email"]) {
-            console.log(req.body["email"]);
-            console.log(element["email"]);
-
             console.log("found email, now check password");
             validEmail = true;
             if (bcrypt.compareSync(req.body["password"], element["password"])) {
                 console.log("match! logged in");
                 validPassword = true;
                 // if email and password match, sets cookie and renders
-
                 req.session["user_id"] = element["id"];
                 res.redirect("/urls");
             }
