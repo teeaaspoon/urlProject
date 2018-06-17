@@ -6,6 +6,8 @@
                 <tr>
                     <th>Short Link</th>
                     <th>Long Link</th>
+                    <th>Times Visted</th>
+                    <th>Unique Visitors</th>
                 </tr>
 
                 <% userInfo["links"].forEach(function(element){ %>
@@ -16,6 +18,8 @@
                     <td>
                         <%= urls[element] %>
                     </td>
+                    <td>0</td>
+                    <td>0</td>
                     <td>
                         <a href="/urls/<%=element%>">
                             <button class="btn btn-warning">Edit</button>
