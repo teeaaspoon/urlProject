@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const methodOverride = require("method-override");
+const moment = require("moment");
 
 const app = express();
 const PORT = 8080;
@@ -258,10 +259,10 @@ app.get("/u/:shortURL", (req, res) => {
     // add their visit to the urlDatabase[shortURL][visits]
     var visitorArray = [];
     if (req.session["user_id"] !== undefined) {
-        visitorArray.push("someTime");
+        visitorArray.push(moment().format());
         visitorArray.push(req.session["user_id"]);
     } else if (req.session["user_id"] === undefined) {
-        visitorArray.push("someTime");
+        visitorArray.push(moment().format("MMMM Do YYYY, h:mm:ss a"));
         visitorArray.push(req.session["visitor_id"]);
     }
     urlDatabase[req.params.shortURL]["visits"].push(visitorArray);
