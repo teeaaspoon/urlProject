@@ -6,8 +6,22 @@
             </a>
         </h2>
         <form action="/urls/<%= shortURL %>?_method=PUT" method="post">
-            <input id="editLongURL" type="text" name="editLongURL" value="<%= urls[shortURL] %>" class="col-lg-8">
+            <input id="editLongURL" type="text" name="editLongURL" value="<%= urls[shortURL]["longURL"] %>" class="col-lg-8">
             <input type="submit" value="Update" class="btn btn-success">
         </form>
+        <table>
+            <tr>
+                <th>Visits 50</th>
+                <th>Unique Visits 20</th>
+            </tr>
+            <tr>
+                <th>TimeStamp</th>
+                <th>Visitor id</th>
+            </tr>
+            <tr>
+                <td><%= Date.now() %></td>
+                <td> somelonglonglonglonglonglonglonglonglongstring </td>
+            </tr>
+        </table>
     </main>
 <% include partials/_footer.ejs %>

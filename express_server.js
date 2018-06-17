@@ -13,7 +13,7 @@ app.use(methodOverride("_method"));
 app.use(
     cookieSession({
         name: "session",
-        keys: ["user_id"]
+        keys: ["user_id", "visitor_id"]
     })
 );
 
@@ -21,9 +21,21 @@ app.use(
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-    b2xVn2: "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com",
-    traNcE: "https://soundcloud.com/bryankearney"
+    b2xVn2: {
+        longURL: "http://www.lighthouselabs.ca",
+        visits: [
+            ["someTime", "someVisitorID"],
+            ["someOtherTime", "someOtherVisitorID"]
+        ]
+    },
+    "9sm5xK": {
+        longURL: "http://www.google.com",
+        visits: [["someTime", "someVisitorID"]]
+    },
+    traNcE: {
+        longURL: "https://soundcloud.com/bryankearney",
+        visits: [["someTime", "someVisitorID"]]
+    }
 };
 
 const usersDB = {
@@ -139,7 +151,8 @@ app.post("/urls", (req, res) => {
         var userID = req.session["user_id"];
 
         // adds the long url to database
-        urlDatabase[shortURL] = req.body["longURL"];
+        urlDatabase[shortURL] = {};
+        urlDatabase[shortURL]["longURL"] = req.body["longURL"];
 
         // adds the short link into the user objects ["links"]
         usersDB[userID]["links"].push(shortURL);
@@ -213,7 +226,7 @@ app.put("/urls/:id", (req, res) => {
         res.render("urls_index", templateVars);
         return;
     }
-    urlDatabase[shortURL] = updatedLongURL;
+    urlDatabase[shortURL]["longURL"] = updatedLongURL;
     res.redirect("/urls");
 });
 
@@ -228,6 +241,13 @@ app.get("/u/:shortURL", (req, res) => {
     if (req.session["user_id"] !== undefined) {
         templateVars["userInfo"] = usersDB[req.session["user_id"]];
     }
+
+    // req.session["visitor_id"] = generateRandomString();
+    // if there is no userid, generate a visitor id session
+    // add it to the list of visitors
+    // before login or register, clear the cookies
+    //
+
     // get the short url from the id
     const shortURL = req.params["shortURL"];
     if (!(shortURL in urlDatabase)) {
@@ -235,7 +255,7 @@ app.get("/u/:shortURL", (req, res) => {
         res.render("urls_index", templateVars);
     } else {
         // find the long URL in the database
-        const longURL = urlDatabase[shortURL];
+        const longURL = urlDatabase[shortURL]["longURL"];
         // response redirect to the long url
         res.redirect(longURL);
     }
