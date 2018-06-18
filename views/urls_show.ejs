@@ -9,14 +9,14 @@
             <input id="editLongURL" type="text" name="editLongURL" value="<%= urls[shortURL]["longURL"] %>" class="col-lg-8">
             <input type="submit" value="Update" class="btn btn-success">
         </form>
-        <table>
+        <table class="table">
             <tr>
                 <th>Visits <%= urls[shortURL]["visits"].length %></th>
                 <th>Unique Visits <%=calculateUniquePageViews(urls[shortURL]["visits"])%></th>
             </tr>
             <tr>
                 <th>TimeStamp</th>
-                <th>Visitor id</th>
+                <th>Visitor ID</th>
             </tr>
             <% urls[shortURL]["visits"].forEach(element => { %>
             <tr>
